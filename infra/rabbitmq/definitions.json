@@ -1,0 +1,133 @@
+{
+  "rabbit_version": "3.13",
+  "rabbitmq_version": "3.13",
+  "users": [
+    {
+      "name": "fluxpipe",
+      "password_hash": "fluxpipe_dev",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "fluxpipe",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "events.ingested",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "events.processed",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "events.failed",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "events.retry",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "events.processing",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "events.failed",
+        "x-dead-letter-routing-key": "dlq"
+      }
+    },
+    {
+      "name": "events.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "delivery.webhook",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "events.retry",
+        "x-dead-letter-routing-key": "retry"
+      }
+    },
+    {
+      "name": "events.retry.delay",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 60000,
+        "x-dead-letter-exchange": "events.processed",
+        "x-dead-letter-routing-key": "retry"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "events.ingested",
+      "vhost": "/",
+      "destination": "events.processing",
+      "destination_type": "queue",
+      "routing_key": "event.*.*",
+      "arguments": {}
+    },
+    {
+      "source": "events.failed",
+      "vhost": "/",
+      "destination": "events.dlq",
+      "destination_type": "queue",
+      "routing_key": "dlq",
+      "arguments": {}
+    },
+    {
+      "source": "events.processed",
+      "vhost": "/",
+      "destination": "delivery.webhook",
+      "destination_type": "queue",
+      "routing_key": "delivery.*",
+      "arguments": {}
+    },
+    {
+      "source": "events.retry",
+      "vhost": "/",
+      "destination": "events.retry.delay",
+      "destination_type": "queue",
+      "routing_key": "retry",
+      "arguments": {}
+    }
+  ]
+}

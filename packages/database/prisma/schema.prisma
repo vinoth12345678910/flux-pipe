@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  plan      String   @default("free")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  pipelines Pipeline[]
+  events    Event[]
+  apiKeys   ApiKey[]
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("viewer")
+  orgId        String   @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  apiKeys      ApiKey[]
+
+  @@index([orgId])
+}
+
+model ApiKey {
+  id          String    @id @default(uuid()) @db.Uuid
+  prefix      String
+  hash        String    @unique
+  name        String
+  orgId       String    @db.Uuid
+  userId      String    @db.Uuid
+  scopes      String[]
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([prefix])
+}
+
+model Pipeline {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  orgId       String   @db.Uuid
+  isActive    Boolean  @default(true)
+  config      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  destinations Destination[]
+  events       Event[]
+
+  @@index([orgId])
+  @@index([isActive])
+}
+
+model Destination {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  type       String
+  pipelineId String   @db.Uuid
+  config     Json
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  pipeline         Pipeline          @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deliveryAttempts DeliveryAttempt[]
+
+  @@index([pipelineId])
+}
+
+model Event {
+  id              String    @id @default(uuid()) @db.Uuid
+  orgId           String    @db.Uuid
+  pipelineId      String    @db.Uuid
+  status          String    @default("pending")
+  payload         Json
+  idempotencyKey  String?
+  receivedAt      DateTime  @default(now())
+  processedAt     DateTime?
+  deliveredAt     DateTime?
+
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  pipeline         Pipeline          @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deliveryAttempts DeliveryAttempt[]
+  eventLogs        EventLog[]
+
+  @@unique([orgId, idempotencyKey])
+  @@index([orgId, status])
+  @@index([pipelineId, receivedAt(sort: Desc)])
+}
+
+model DeliveryAttempt {
+  id             String   @id @default(uuid()) @db.Uuid
+  eventId        String   @db.Uuid
+  destinationId  String   @db.Uuid
+  attemptNumber  Int
+  status         String
+  responseCode   Int?
+  latencyMs      Int?
+  errorMessage   String?
+  attemptedAt    DateTime @default(now())
+
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, status])
+  @@index([destinationId, attemptedAt(sort: Desc)])
+}
+
+model EventLog {
+  id        BigInt   @id @default(autoincrement())
+  eventId   String   @db.Uuid
+  message   String
+  level     String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}

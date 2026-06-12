@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  management-service:
+    volumes:
+      - ./apps/management-service/src:/app/src
+    command: pnpm dev
+
+  ingestion-service:
+    volumes:
+      - ./apps/ingestion-service/src:/app/src
+    command: pnpm dev
+
+  processing-service:
+    volumes:
+      - ./apps/processing-service/src:/app/src
+    command: pnpm dev
+
+  delivery-service:
+    volumes:
+      - ./apps/delivery-service/src:/app/src
+    command: pnpm dev
+
+  enrichment-service:
+    volumes:
+      - ./apps/enrichment-service/src:/app/src
+    command: pnpm dev
+
+  notification-service:
+    volumes:
+      - ./apps/notification-service/src:/app/src
+    command: pnpm dev

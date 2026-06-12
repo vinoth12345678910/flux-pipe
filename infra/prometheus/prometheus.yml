@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "management-service"
+    static_configs:
+      - targets: ["management-service:3001"]
+
+  - job_name: "ingestion-service"
+    static_configs:
+      - targets: ["ingestion-service:3002"]
+
+  - job_name: "processing-service"
+    static_configs:
+      - targets: ["processing-service:3003"]
+
+  - job_name: "delivery-service"
+    static_configs:
+      - targets: ["delivery-service:3004"]
+
+  - job_name: "enrichment-service"
+    static_configs:
+      - targets: ["enrichment-service:3005"]
+
+  - job_name: "notification-service"
+    static_configs:
+      - targets: ["notification-service:3006"]
