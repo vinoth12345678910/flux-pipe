@@ -1,9 +1,9 @@
-// RabbitMQ consumer for events.processing queue
-// TODO: Implement when building workers
-import { consume } from "@fluxpipe/rabbitmq";
+import { consumeEvent } from "@fluxpipe/rabbitmq";
 import { transformQueue } from "../bullmq/queues";
-import { idempotencyStore } from "@fluxpipe/redis";
-import { logger } from "@fluxpipe/logger";
+import { checkIdempotency, storeIdempotencyKey } from "@fluxpipe/redis";
+import { createLogger } from "@fluxpipe/logger";
+
+const logger = createLogger("processing-service");
 
 interface EventMessage {
   eventId: string;
@@ -15,75 +15,56 @@ interface EventMessage {
 
 export class EventConsumer {
   async start(): Promise<void> {
-
-
-    await consume(
+    await consumeEvent(
       "events.processing",
-      async (message: EventMessage) => {
+      async (message: Record<string, unknown>, ack: () => void, _nack: () => void) => {
+        const msg = message as unknown as EventMessage;
 
         logger.info("Received event for processing", {
-          eventId: message.eventId,
-          orgId: message.orgId,
+          eventId: msg.eventId,
+          orgId: msg.orgId,
         });
 
-        
-
-        const existing = await idempotencyStore.get(
-          message.orgId,
-          message.eventId
-        );
+        const existing = await checkIdempotency(msg.orgId, msg.eventId);
 
         if (existing) {
-          
-
           logger.warn("Duplicate event skipped", {
-            eventId: message.eventId,
+            eventId: msg.eventId,
           });
-
+          ack();
           return;
         }
-
-
 
         await transformQueue.add(
           "transform-event",
           {
-            eventId: message.eventId,
-            orgId: message.orgId,
-            pipelineId: message.pipelineId,
-            payload: message.payload,
-            traceId: message.traceId,
+            eventId: msg.eventId,
+            orgId: msg.orgId,
+            pipelineId: msg.pipelineId,
+            payload: msg.payload,
+            traceId: msg.traceId,
           },
           {
             attempts: 3,
-
             backoff: {
               type: "exponential",
               delay: 1000,
             },
-
             removeOnComplete: 100,
             removeOnFail: 500,
           }
         );
 
         logger.info("Transform job created", {
-          eventId: message.eventId,
+          eventId: msg.eventId,
         });
 
-       
-
-        await idempotencyStore.set(
-          message.orgId,
-          message.eventId,
-          message.eventId,
-          86400
-        );
-
+        await storeIdempotencyKey(msg.orgId, msg.eventId, msg.eventId);
         logger.info("Idempotency key stored", {
-          eventId: message.eventId,
+          eventId: msg.eventId,
         });
 
+        ack();
       }
     );
 

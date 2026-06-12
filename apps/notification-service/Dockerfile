@@ -1,16 +1,20 @@
 FROM node:20-alpine AS builder
+RUN corepack enable
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-COPY . .
-RUN pnpm build
 
-FROM node:20-alpine AS runner
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 appuser
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY turbo.json tsconfig.base.json ./
+COPY packages/ ./packages/
+COPY apps/notification-service/ ./apps/notification-service/
+
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @fluxpipe/notification-service build
+RUN pnpm deploy --filter @fluxpipe/notification-service --prod /app/out
+
+FROM node:20-alpine
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/out /app
 USER appuser
 EXPOSE 3006
 ENV NODE_ENV=production

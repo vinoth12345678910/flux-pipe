@@ -18,12 +18,13 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-fluxpipe}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fluxpipe_prod}
+      POSTGRES_DB: ${POSTGRES_DB:-fluxpipe}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fluxpipe}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -58,6 +59,8 @@ services:
     restart: unless-stopped
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./infra/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
@@ -80,6 +83,7 @@ services:
     volumes:
       - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./infra/nginx/ssl:/etc/nginx/ssl
     depends_on:
       - management-service
       - ingestion-service
@@ -94,6 +98,9 @@ services:
           cpus: "0.3"
 
   management-service:
+    build:
+      context: .
+      dockerfile: apps/management-service/Dockerfile
     image: fluxpipe/management-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env.production
@@ -103,7 +110,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/health',r=>{process.exit(r.statusCode===200?0:1)})\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -117,6 +124,9 @@ services:
           cpus: "0.5"
 
   ingestion-service:
+    build:
+      context: .
+      dockerfile: apps/ingestion-service/Dockerfile
     image: fluxpipe/ingestion-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env.production
@@ -128,7 +138,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3002/health',r=>{process.exit(r.statusCode===200?0:1)})\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3002/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -142,6 +152,9 @@ services:
           cpus: "1.0"
 
   processing-service:
+    build:
+      context: .
+      dockerfile: apps/processing-service/Dockerfile
     image: fluxpipe/processing-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env.production
@@ -153,7 +166,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3003/health',r=>{process.exit(r.statusCode===200?0:1)})\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3003/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -167,6 +180,9 @@ services:
           cpus: "1.0"
 
   delivery-service:
+    build:
+      context: .
+      dockerfile: apps/delivery-service/Dockerfile
     image: fluxpipe/delivery-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env.production
@@ -176,7 +192,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3004/health',r=>{process.exit(r.statusCode===200?0:1)})\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3004/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -190,6 +206,9 @@ services:
           cpus: "0.5"
 
   enrichment-service:
+    build:
+      context: .
+      dockerfile: apps/enrichment-service/Dockerfile
     image: fluxpipe/enrichment-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env.production
@@ -199,7 +218,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3005/health',r=>{process.exit(r.statusCode===200?0:1)})\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3005/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -213,6 +232,9 @@ services:
           cpus: "0.5"
 
   notification-service:
+    build:
+      context: .
+      dockerfile: apps/notification-service/Dockerfile
     image: fluxpipe/notification-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env.production
@@ -220,7 +242,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3006/health',r=>{process.exit(r.statusCode===200?0:1)})\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3006/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
