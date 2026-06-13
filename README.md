@@ -466,37 +466,6 @@ All tests hit real infrastructure (Postgres, Redis, RabbitMQ). Zero mocks for ex
 
 ---
 
-## Resume Entry
-
-```
-FluxPipe — Real-Time Data Ingestion & Delivery Platform
-github.com/yourhandle/fluxpipe
-
-Architected and built a production-grade distributed event streaming platform
-capable of ingesting, processing, and delivering high-throughput event data to
-configurable downstream destinations with delivery guarantees.
-
-• Designed 6-service microservices architecture in Node.js/TypeScript,
-  orchestrated with Docker Compose behind Nginx, handling 1,000+ events/second
-
-• Built async processing pipeline: RabbitMQ topic exchanges → BullMQ workers
-  (transform → enrich → route) with sub-100ms p99 ingest latency
-
-• Implemented SAGA-pattern multi-destination delivery with compensation logic,
-  5-attempt exponential backoff, DLQ routing, and manual replay endpoint
-
-• Built Redis-backed sliding-window rate limiting, cache-aside with single-flight
-  stampede prevention, and NX-based idempotency keys for exactly-once processing
-
-• Designed PostgreSQL schema with MVCC transactions, partial indexes, GIN indexes
-  on JSONB payloads, and multi-tenant org isolation via foreign keys
-
-• 63-test suite (unit + integration + E2E) hitting live infrastructure —
-  no mocks for Postgres, Redis, or RabbitMQ
-
-Tech: Node.js · TypeScript · PostgreSQL · Redis · RabbitMQ · BullMQ ·
-      Docker · Nginx · Prisma · pnpm · Turborepo
-```
 
 ---
 
