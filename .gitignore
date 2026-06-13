@@ -10,3 +10,4 @@ coverage/
 Dockerfile.*
 !.env.example
 *.tsbuildinfo
+*.pem
