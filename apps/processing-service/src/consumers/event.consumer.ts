@@ -1,4 +1,4 @@
-import { consumeEvent } from "@fluxpipe/rabbitmq/dist";
+import { consumeEvent } from "@fluxpipe/rabbitmq";
 import { transformQueue } from "../bullmq/queues";
 import { checkIdempotency, storeIdempotencyKey } from "@fluxpipe/redis";
 import { createLogger } from "@fluxpipe/logger";

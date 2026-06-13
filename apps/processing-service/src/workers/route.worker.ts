@@ -1,13 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { getClient } from "@fluxpipe/redis";
 import { destinationRepository, eventRepository } from "@fluxpipe/database";
-const { publishEvent } = require("@fluxpipe/rabbitmq") as {
-  publishEvent: (
-    exchange: string,
-    routingKey: string,
-    payload: Record<string, unknown>
-  ) => Promise<void>;
-};
+import { publishEvent } from "@fluxpipe/rabbitmq";
 import { createLogger } from "@fluxpipe/logger";
 
 const logger = createLogger("processing-service");

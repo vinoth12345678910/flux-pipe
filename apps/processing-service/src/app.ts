@@ -1,4 +1,6 @@
 import express, { Express } from "express";
+import { initBullBoard } from "./bullmq/bull-board";
+import { requireAdmin } from "./middlewares/admin-auth.middleware";
 
 const app: Express = express();
 
@@ -13,5 +15,10 @@ app.get("/metrics", (_req, res) => {
     memory: process.memoryUsage(),
   });
 });
+
+const bullBoardAdapter = initBullBoard();
+if (bullBoardAdapter) {
+  app.use("/admin/queues", requireAdmin, bullBoardAdapter.getRouter());
+}
 
 export default app;
