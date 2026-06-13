@@ -2,6 +2,7 @@ import { createLogger } from "@fluxpipe/logger";
 import { parseEnv } from "@fluxpipe/shared-config";
 import { disconnectClient } from "@fluxpipe/database";
 import app from "./app";
+import "./workers/enrichment.worker";
 
 const logger = createLogger("enrichment-service");
 

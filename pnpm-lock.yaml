@@ -72,9 +72,18 @@ importers:
       '@fluxpipe/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@fluxpipe/rabbitmq':
+        specifier: workspace:*
+        version: link:../../packages/rabbitmq
+      '@fluxpipe/redis':
+        specifier: workspace:*
+        version: link:../../packages/redis
       '@fluxpipe/shared-config':
         specifier: workspace:*
         version: link:../../packages/shared-config
+      bullmq:
+        specifier: ^5.12.0
+        version: 5.78.0
       express:
         specifier: ^4.19.0
         version: 4.22.2
@@ -183,15 +192,27 @@ importers:
 
   apps/notification-service:
     dependencies:
+      '@fluxpipe/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@fluxpipe/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@fluxpipe/rabbitmq':
+        specifier: workspace:*
+        version: link:../../packages/rabbitmq
+      '@fluxpipe/redis':
+        specifier: workspace:*
+        version: link:../../packages/redis
       '@fluxpipe/shared-config':
         specifier: workspace:*
         version: link:../../packages/shared-config
       '@fluxpipe/shared-utils':
         specifier: workspace:*
         version: link:../../packages/shared-utils
+      bullmq:
+        specifier: ^5.12.0
+        version: 5.78.0
       express:
         specifier: ^4.19.0
         version: 4.22.2

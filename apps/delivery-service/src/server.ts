@@ -3,6 +3,7 @@ import { parseEnv } from "@fluxpipe/shared-config";
 import { disconnectClient } from "@fluxpipe/database";
 import { initJwt } from "@fluxpipe/auth";
 import app from "./app";
+import { deliveryConsumer } from "./rabbitmq/consumer";
 
 const logger = createLogger("delivery-service");
 
@@ -13,6 +14,8 @@ async function main(): Promise<void> {
     secret: env.JWT_SECRET,
     refreshSecret: env.JWT_REFRESH_SECRET,
   });
+
+  await deliveryConsumer.start();
 
   const port = parseInt(process.env.PORT || "3004", 10);
   const server = app.listen(port, () => {

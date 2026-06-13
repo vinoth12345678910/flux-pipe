@@ -1,11 +1,15 @@
 import { createLogger } from "@fluxpipe/logger";
 import { parseEnv } from "@fluxpipe/shared-config";
 import app from "./app";
+import { dlqConsumer } from "./consumers/dlq.consumer";
+import "./workers/notification.worker";
 
 const logger = createLogger("notification-service");
 
 async function main(): Promise<void> {
   parseEnv();
+
+  await dlqConsumer.start();
 
   const port = parseInt(process.env.PORT || "3006", 10);
   const server = app.listen(port, () => {
