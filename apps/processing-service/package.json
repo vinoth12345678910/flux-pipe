@@ -16,6 +16,7 @@
   "dependencies": {
     "@bull-board/api": "^5.0.0",
     "@bull-board/express": "^5.0.0",
+    "@fluxpipe/auth": "workspace:*",
     "@fluxpipe/database": "workspace:*",
     "@fluxpipe/logger": "workspace:*",
     "@fluxpipe/rabbitmq": "workspace:*",

@@ -17,6 +17,15 @@ export function getClient(): Redis {
   return client;
 }
 
+export function getWorkerConnection(): Redis {
+  return new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
+    maxRetriesPerRequest: null,
+    retryStrategy: (times) => Math.min(times * 100, 3000),
+    lazyConnect: true,
+  });
+}
+
+
 export async function connectClient(): Promise<void> {
   if (!client) getClient();
   if (client && client.status !== "ready" && client.status !== "connecting") {

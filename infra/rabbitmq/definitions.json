@@ -4,7 +4,7 @@
   "users": [
     {
       "name": "fluxpipe",
-      "password_hash": "fluxpipe_dev",
+      "password": "fluxpipe_dev",
       "tags": "administrator"
     }
   ],

@@ -1,2 +1,0 @@
-export declare function consumeEvent(queue: string, onMessage: (data: Record<string, unknown>, ack: () => void, nack: () => void) => Promise<void>): Promise<void>;
-//# sourceMappingURL=event.consumer.d.ts.map

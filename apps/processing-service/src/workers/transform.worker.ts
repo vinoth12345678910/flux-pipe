@@ -1,11 +1,11 @@
 import { Worker, Job } from "bullmq";
-import { getClient } from "@fluxpipe/redis";
+import { getWorkerConnection } from "@fluxpipe/redis";
 import { pipelineRepository, eventRepository } from "@fluxpipe/database";
 import { createLogger } from "@fluxpipe/logger";
 import { enrichQueue } from "../bullmq/queues";
 
 const logger = createLogger("processing-service");
-const redisClient = getClient() as any;
+const redisClient = getWorkerConnection() as any;
 
 interface TransformJobData {
   eventId: string;

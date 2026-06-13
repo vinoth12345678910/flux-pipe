@@ -11,7 +11,7 @@ export const pipelineService = {
 
   async getById(orgId: string, id: string) {
     const pipeline = await pipelineRepository.findById(id);
-    if (!pipeline || pipeline.orgId !== orgId) throw new AppError(404, "NOT_FOUND", "Pipeline not found");
+    if (!pipeline || pipeline.orgId !== orgId || !pipeline.isActive) throw new AppError(404, "NOT_FOUND", "Pipeline not found");
     return pipeline;
   },
 

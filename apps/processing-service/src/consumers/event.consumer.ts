@@ -75,3 +75,13 @@ export class EventConsumer {
 }
 
 export const eventConsumer = new EventConsumer();
+
+export async function startConsumer(): Promise<void> {
+  await eventConsumer.start();
+}
+
+export async function stopConsumer(): Promise<void> {
+  // Disconnect rabbitmq connection on shutdown
+  const { disconnect } = require("@fluxpipe/rabbitmq");
+  await disconnect();
+}

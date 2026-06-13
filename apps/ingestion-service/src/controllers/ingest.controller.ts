@@ -21,7 +21,12 @@ export const ingestController = {
   async ingestBatch(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await ingestService.ingestBatch(req.org!.orgId, req.body.events);
-      success(res, { results: result, total: result.succeeded.length + result.failed.length }, 202);
+      const eventIds = result.succeeded.map(s => s.eventId);
+      success(res, {
+        succeeded: result.succeeded.length,
+        failed: result.failed.length,
+        eventIds
+      }, 202);
     } catch (err) {
       next(err);
     }

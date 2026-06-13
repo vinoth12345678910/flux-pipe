@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { getClient } from "@fluxpipe/redis";
+import { getWorkerConnection } from "@fluxpipe/redis";
 import { publishEvent } from "@fluxpipe/rabbitmq";
 import { createLogger } from "@fluxpipe/logger";
 import { profileService } from "../services/profile.service";
@@ -40,7 +40,7 @@ export const enrichmentWorker = new Worker<EnrichmentJobData>(
     logger.info("Enriched event published", { eventId });
   },
   {
-    connection: getClient() as any,
+    connection: getWorkerConnection() as any,
     concurrency: 10,
   },
 );

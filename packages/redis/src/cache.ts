@@ -21,3 +21,28 @@ export async function cacheDelete(key: string): Promise<void> {
   const client = getClient();
   await client.del(key);
 }
+
+const pendingPromises = new Map<string, Promise<any>>();
+
+export async function getOrSet<T>(key: string, fetchFn: () => Promise<T>, ttlSeconds = 300): Promise<T> {
+  const cached = await cacheGet<T>(key);
+  if (cached !== null) return cached;
+
+  let promise = pendingPromises.get(key);
+  if (!promise) {
+    promise = fetchFn().then(async (val) => {
+      await cacheSet(key, val, ttlSeconds);
+      pendingPromises.delete(key);
+      return val;
+    }).catch((err) => {
+      pendingPromises.delete(key);
+      throw err;
+    });
+    pendingPromises.set(key, promise);
+  }
+
+  return promise;
+}
+
+export const invalidate = cacheDelete;
+

@@ -1,21 +1,35 @@
+FROM node:20-alpine AS pruner
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY . .
+RUN npx turbo@1.13.4 prune --scope=@fluxpipe/notification-service --docker
+
 FROM node:20-alpine AS builder
 RUN corepack enable
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY turbo.json tsconfig.base.json ./
-COPY packages/ ./packages/
-COPY apps/notification-service/ ./apps/notification-service/
+COPY --from=pruner /app/out/json/ ./
+COPY --from=pruner /app/out/pnpm-lock.yaml ./
+RUN pnpm install --no-frozen-lockfile
 
-RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @fluxpipe/notification-service build
-RUN pnpm deploy --filter @fluxpipe/notification-service --prod /app/out
+RUN apk add --no-cache openssl libc6-compat
 
-FROM node:20-alpine
+COPY --from=pruner /app/out/full/ ./
+COPY --from=pruner /app/tsconfig.base.json ./
+
+RUN pnpm --filter @fluxpipe/database exec prisma generate
+RUN pnpm build
+RUN pnpm prune --prod
+
+FROM node:20-alpine AS runner
+RUN apk add --no-cache openssl
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
-COPY --from=builder /app/out /app
+
+COPY --from=builder /app /app
+
 USER appuser
 EXPOSE 3006
 ENV NODE_ENV=production
-CMD ["node", "dist/server.js"]
+CMD ["node", "apps/notification-service/dist/apps/notification-service/src/server.js"]
+

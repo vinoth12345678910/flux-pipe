@@ -32,6 +32,12 @@ export class DeliverEventSaga {
         orgId,
         destinationId: destination.id,
         payload,
+      }, {
+        attempts: 5,
+        backoff: {
+          type: "exponential",
+          delay: 100,
+        },
       })
     );
 
@@ -51,7 +57,7 @@ export class DeliverEventSaga {
     logger.warn("Partial failure detected", { eventId, failedDestinations });
     await eventRepository.updateStatus(eventId, "partial_failure");
 
-    await publishEvent("events.failed", `dead.${orgId}.${eventId}`, {
+    await publishEvent("events.failed", "dlq", {
       eventId,
       orgId,
       pipelineId,

@@ -5,6 +5,8 @@ import { initJwt } from "@fluxpipe/auth";
 import app from "./app";
 import { deliveryConsumer } from "./rabbitmq/consumer";
 
+import { deliveryWorker } from "./workers/delivery.worker";
+
 const logger = createLogger("delivery-service");
 
 async function main(): Promise<void> {
@@ -25,6 +27,7 @@ async function main(): Promise<void> {
   const shutdown = async (signal: string) => {
     logger.info(`Received ${signal}, shutting down...`);
     server.close(async () => {
+      await deliveryWorker.close();
       await disconnectClient();
       process.exit(0);
     });

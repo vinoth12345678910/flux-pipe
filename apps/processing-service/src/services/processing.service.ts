@@ -63,3 +63,22 @@ export const processingService = {
     return result;
   },
 };
+
+import { transformWorker } from "../workers/transform.worker";
+import { enrichWorker } from "../workers/enrich.worker";
+import { routeWorker } from "../workers/route.worker";
+
+export async function startWorkers(): Promise<void> {
+  // Referencing the worker imports to ensure they are initialized
+  if (!transformWorker.isRunning()) await transformWorker.run();
+  if (!enrichWorker.isRunning()) await enrichWorker.run();
+  if (!routeWorker.isRunning()) await routeWorker.run();
+}
+
+export async function stopWorkers(): Promise<void> {
+  await Promise.all([
+    transformWorker.close(),
+    enrichWorker.close(),
+    routeWorker.close(),
+  ]);
+}

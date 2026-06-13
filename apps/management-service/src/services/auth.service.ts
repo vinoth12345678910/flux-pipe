@@ -47,7 +47,7 @@ export const authService = {
   },
 
   async refresh(refreshToken: string) {
-    let payload;
+    let payload: any;
     try {
       payload = verifyToken(refreshToken, true);
     } catch {
@@ -56,6 +56,9 @@ export const authService = {
 
     const denylisted = await isDenylisted(payload.jti);
     if (denylisted) throw new AppError(401, "TOKEN_REVOKED", "Refresh token has been revoked");
+
+    const ttl = Math.max(0, payload.exp - Math.floor(Date.now() / 1000));
+    await addToDenylist(payload.jti, ttl);
 
     const user = await userRepository.findById(payload.userId);
     if (!user) throw new AppError(401, "USER_NOT_FOUND", "User no longer exists");

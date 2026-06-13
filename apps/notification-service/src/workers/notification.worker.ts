@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { getClient } from "@fluxpipe/redis";
+import { getWorkerConnection } from "@fluxpipe/redis";
 import { createLogger } from "@fluxpipe/logger";
 import { emailService } from "../services/email.service";
 import { slackService } from "../services/slack.service";
@@ -31,7 +31,7 @@ export const notificationWorker = new Worker<NotificationJobData>(
     logger.info("Notification sent", { type, eventId });
   },
   {
-    connection: getClient() as any,
+    connection: getWorkerConnection() as any,
     concurrency: 5,
   },
 );

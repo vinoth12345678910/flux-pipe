@@ -1,12 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model Organization {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
@@ -14,7 +14,6 @@ model Organization {
   plan      String   @default("free")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   users     User[]
   pipelines Pipeline[]
   events    Event[]
@@ -30,10 +29,8 @@ model User {
   orgId        String   @db.Uuid
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   apiKeys      ApiKey[]
-
   @@index([orgId])
 }
 
@@ -49,10 +46,8 @@ model ApiKey {
   lastUsedAt  DateTime?
   revokedAt   DateTime?
   createdAt   DateTime  @default(now())
-
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([prefix])
 }
 
@@ -65,11 +60,9 @@ model Pipeline {
   config      Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   destinations Destination[]
   events       Event[]
-
   @@index([orgId])
   @@index([isActive])
 }
@@ -83,48 +76,42 @@ model Destination {
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
   pipeline         Pipeline          @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   deliveryAttempts DeliveryAttempt[]
-
   @@index([pipelineId])
 }
 
 model Event {
-  id              String    @id @default(uuid()) @db.Uuid
-  orgId           String    @db.Uuid
-  pipelineId      String    @db.Uuid
-  status          String    @default("pending")
-  payload         Json
-  idempotencyKey  String?
-  receivedAt      DateTime  @default(now())
-  processedAt     DateTime?
-  deliveredAt     DateTime?
-
+  id             String    @id @default(uuid()) @db.Uuid
+  orgId          String    @db.Uuid
+  pipelineId     String    @db.Uuid
+  status         String    @default("pending")
+  payload        Json
+  idempotencyKey String?
+  receivedAt     DateTime  @default(now())
+  processedAt    DateTime?
+  deliveredAt    DateTime?
   organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   pipeline         Pipeline          @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   deliveryAttempts DeliveryAttempt[]
   eventLogs        EventLog[]
-
   @@unique([orgId, idempotencyKey])
   @@index([orgId, status])
   @@index([pipelineId, receivedAt(sort: Desc)])
 }
 
 model DeliveryAttempt {
-  id             String   @id @default(uuid()) @db.Uuid
-  eventId        String   @db.Uuid
-  destinationId  String   @db.Uuid
-  attemptNumber  Int
-  status         String
-  responseCode   Int?
-  latencyMs      Int?
-  errorMessage   String?
-  attemptedAt    DateTime @default(now())
-
+  id            String   @id @default(uuid()) @db.Uuid
+  eventId       String   @db.Uuid
+  destinationId String   @db.Uuid
+  attemptNumber Int
+  status        String
+  responseCode  Int?
+  latencyMs     Int?
+  errorMessage  String?
+  attemptedAt   DateTime @default(now())
   event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
-
   @@index([eventId, status])
   @@index([destinationId, attemptedAt(sort: Desc)])
 }
@@ -136,8 +123,6 @@ model EventLog {
   level     String
   metadata  Json?
   createdAt DateTime @default(now())
-
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
   @@index([eventId])
 }

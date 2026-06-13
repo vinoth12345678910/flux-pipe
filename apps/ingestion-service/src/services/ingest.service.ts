@@ -21,6 +21,10 @@ export const ingestService = {
       }
     }
 
+    if (payload && JSON.stringify(payload).length > 512 * 1024) {
+      throw new AppError(400, "PAYLOAD_TOO_LARGE", "Payload size exceeds 512KB limit");
+    }
+
     const pipeline = await getClient().pipeline.findUnique({ where: { id: pipelineId } });
     if (!pipeline || !pipeline.isActive || pipeline.orgId !== orgId) {
       throw new AppError(400, "INVALID_PIPELINE", "Pipeline not found or inactive");

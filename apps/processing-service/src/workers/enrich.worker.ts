@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { getClient, cacheGet, cacheSet } from "@fluxpipe/redis";
+import { getWorkerConnection, cacheGet, cacheSet } from "@fluxpipe/redis";
 import {
   eventRepository,
   orgRepository,
@@ -105,7 +105,7 @@ export const enrichWorker = new Worker(
   },
 
   {
-    connection: getClient() as any,
+    connection: getWorkerConnection() as any,
     concurrency: 10,
   }
 );
