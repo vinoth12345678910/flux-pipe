@@ -294,6 +294,16 @@ DATABASE_URL=postgresql://fluxpipe:fluxpipe_dev@localhost:5433/fluxpipe \
   pnpm --filter @fluxpipe/database prisma:push
 ```
 
+### Open the dashboard
+
+```bash
+pnpm install
+pnpm --filter @fluxpipe/web dev      # http://localhost:5173 (proxies to :3001/:3002/:3004)
+# or, with the full stack in Docker: http://localhost:8080
+```
+
+Register an org, create a pipeline + destination, generate an API key, then use **Send Test Event**.
+
 ### Register and start ingesting
 
 ```bash

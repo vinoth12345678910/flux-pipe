@@ -82,6 +82,19 @@ services:
       - public
       - internal
 
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - management-service
+      - ingestion-service
+      - delivery-service
+    networks:
+      - internal
+
   management-service:
     build:
       context: .
