@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes";
 import pipelineRoutes from "./routes/pipeline.routes";
 import destinationRoutes from "./routes/destination.routes";
 import apikeyRoutes from "./routes/apikey.routes";
+import eventRoutes from "./routes/event.routes";
 import { usageController } from "./controllers/usage.controller";
 import { authenticateJWT } from "./middlewares/auth.middleware";
 import { requirePermission } from "./middlewares/rbac.middleware";
@@ -25,6 +26,7 @@ app.use("/v1/auth", authRoutes);
 app.use("/v1/pipelines", pipelineRoutes);
 app.use("/v1/destinations", destinationRoutes);
 app.use("/v1/api-keys", apikeyRoutes);
+app.use("/v1/events", eventRoutes);
 app.get("/v1/usage", authenticateJWT, requirePermission(Permission.ViewUsage), usageController.getUsage);
 
 app.use(errorHandler);
