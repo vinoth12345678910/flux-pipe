@@ -2,8 +2,8 @@
   "name": "@fluxpipe/rabbitmq",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/rabbitmq/src/index.js",
+  "types": "dist/rabbitmq/src/index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit",
