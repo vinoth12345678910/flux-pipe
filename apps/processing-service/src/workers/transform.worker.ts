@@ -35,7 +35,8 @@ export const transformWorker = new Worker<TransformJobData>(
       throw new Error(`Pipeline ${pipelineId} not found`);
     }
 
-    const rules = ((pipeline.config as any)?.transformRules ?? []) as TransformRule[];
+    const cfg = pipeline.config as any;
+    const rules = (cfg?.transformations ?? cfg?.transformRules ?? []) as TransformRule[];
     const transformedPayload: Record<string, unknown> = { ...payload };
 
     for (const rule of rules) {

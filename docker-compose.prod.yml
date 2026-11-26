@@ -6,6 +6,9 @@ networks:
   internal:
     driver: bridge
     internal: true
+  # outbound internet for services that call external webhooks/Slack/SMTP
+  egress:
+    driver: bridge
 
 volumes:
   postgres_data:
@@ -16,12 +19,12 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    env_file: .env.production
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-fluxpipe}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fluxpipe_prod}
       POSTGRES_DB: ${POSTGRES_DB:-fluxpipe}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fluxpipe}"]
@@ -88,6 +91,7 @@ services:
       - management-service
       - ingestion-service
       - delivery-service
+      - web
     networks:
       - public
       - internal
@@ -199,6 +203,7 @@ services:
       start_period: 15s
     networks:
       - internal
+      - egress
     deploy:
       resources:
         limits:
@@ -249,8 +254,30 @@ services:
       start_period: 15s
     networks:
       - internal
+      - egress
     deploy:
       resources:
         limits:
           memory: 128M
           cpus: "0.3"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: fluxpipe/web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - management-service
+      - ingestion-service
+      - delivery-service
+    networks:
+      - internal
+      - public
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: "0.2"
